@@ -37,7 +37,7 @@ namespace benlib{
 	  if(it == nameMap.end()){
 		index = nameMap.size();
 		nameMap.push_back(name);
-		counts.emplace_back();
+		counts.push_back(duration<double>{0.0});
 	  } else {
 		index = std::distance(nameMap.begin(), it);
 	  }
