@@ -3,6 +3,7 @@
 #include <chrono>
 #include <ostream>
 #include <vector>
+#include <numeric>
 
 namespace benlib{
 
@@ -50,7 +51,16 @@ namespace benlib{
 		outs << nameMap[i] << '\t' << std::chrono::duration_cast<units>(counts[i]).count() << '\n';
 	  }
 	}
-	
+
+	void dumpPercentages(std::ostream& outs){
+	  auto total = std::accumulate(counts.begin(), 
+								   counts.end(),
+								   duration<double>{});
+	  for(auto i = 0; i < counts.size(); ++i){
+		outs << nameMap[i] << '\t' << 100*counts[i].count()/total.count() << "%\n";
+	  }
+	}
+
   private:
 	void addTime(size_t index, duration<double> diff){
 	  counts[index] += diff;

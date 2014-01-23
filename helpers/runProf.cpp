@@ -48,5 +48,5 @@ int main(){
   
  prof.dump<std::chrono::duration<double>>(std::cout);
  prof.dump<std::chrono::nanoseconds>(std::cout);
- 
+ prof.dumpPercentages(std::cout);
 }
