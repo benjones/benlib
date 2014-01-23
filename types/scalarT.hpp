@@ -226,12 +226,8 @@ namespace benlib{
 	return ScalarT<T, safe>(ceil(t.data));
   }
   
+  //skipping some of the weirder ones
 
   typedef ScalarT<double, false> scalar_t;
   
-}
-
-
-int main(){
-  return 0;
 }
