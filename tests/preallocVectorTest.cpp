@@ -79,5 +79,14 @@ int main(){
 	dump(pv);
 	assert(pv.size() == 10);
   }
+  {
+	std::cout << "assign test 5: " << std:: endl;
+	benlib::PreallocVector<int, 3> pv;
+	pv.assign(10ul, 4);
+	benlib::PreallocVector<int> pv2(pv);
+	dump(pv2);
+	assert(pv.size() == pv2.size());
+  }
+
 
 }

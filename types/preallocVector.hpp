@@ -27,10 +27,13 @@ namespace benlib{
 						   VType>{
 	
 	public:
-	  ~PreallocVectorIterator() = default;
+	  ~PreallocVectorIterator() = default; //makes clang whine
 	  PreallocVectorIterator() = default; //don't do anything
-
+	  PreallocVectorIterator(const PreallocVectorIterator&) = default;
+	  PreallocVectorIterator& operator=(const PreallocVectorIterator&) = default;
 	  //copy constructor and assignment
+
+	  /*
 	  template <typename otherVType, typename otherContainerType>
 	  PreallocVectorIterator(const PreallocVectorIterator<otherVType, 
 							 otherContainerType>& other)
@@ -38,12 +41,15 @@ namespace benlib{
 	  {}
 	  
 	  template<typename otherVType, typename otherContainerType>
-	  PreallocVectorIterator& operator=(const PreallocVectorIterator& other) noexcept{
+	  PreallocVectorIterator& 
+	  operator=(const PreallocVectorIterator<otherVType, 
+				otherContainerType>& other) noexcept{
+
 		index = other.index;
 		container = other.container;
 		return *this;
 	  }
-
+	  */
 	  //(in)equality comparison
 	  template <typename otherVType, typename otherContainerType>
 	  friend inline bool 
@@ -91,9 +97,12 @@ namespace benlib{
 
 
 	  //increment
-	  template <typename intType>
-	  PreallocVectorIterator& operator +=(intType amt) noexcept{
-		index += amt;
+	  //template <typename intType>
+	  PreallocVectorIterator& operator +=(std::ptrdiff_t amt) noexcept{
+		//index += amt;
+		index = static_cast<size_t>(static_cast<ptrdiff_t>(index) +
+									amt);
+
 		return *this;
 	  }
 	  PreallocVectorIterator& operator ++() noexcept{
@@ -107,9 +116,11 @@ namespace benlib{
 	  }
 	  
 	  //decrement
-	  template <typename intType>
-	  PreallocVectorIterator& operator -=(intType amt) noexcept{
-		index -= amt;
+	  //template <typename intType>
+	  PreallocVectorIterator& operator -=(std::ptrdiff_t amt) noexcept{
+		//index -= amount
+		index = static_cast<size_t>(static_cast<ptrdiff_t>(index) -
+									amt);
 		return *this;
 	  }
 	  PreallocVectorIterator& operator --() noexcept{
@@ -252,7 +263,14 @@ namespace benlib{
 	  }
 	}
 
-
+	//copy
+	template<size_t otherSize>
+	PreallocVector(const PreallocVector<value_type, otherSize>& other)
+	  :size_{0},
+	  data_{reinterpret_cast<T*>(buffer_)}
+	{
+	  assign(other.begin(), other.end());
+	}
 
 	
 
@@ -354,6 +372,15 @@ namespace benlib{
 	inline iterator end(){ return iterator{size_, this};}
 	inline const_iterator end() const { return const_iterator{size_, this};}
 		  
+	inline value_type& front(){return data_[0];}
+	inline const value_type& front() const{return data_[0];}
+	
+	inline value_type& back(){return operator[](size_ - 1);}
+	inline const value_type& back() const {return operator[](size_ - 1);}
+
+	//todo: insert operations
+
+
   private:
 	size_t size_;
 	char* buffer_[sizeof(T)*StaticSize];
