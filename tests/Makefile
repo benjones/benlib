@@ -10,3 +10,6 @@ all: $(TESTS)
 %.run: %.cpp
 	$(CC) $(FLAGS) $< -o $@
 	./$@
+
+clean:
+	rm -rfv *.run *.dSYM *~
