@@ -1,91 +1,80 @@
-#include "../types/preallocVector.hpp"
-#include <iostream>
-#include <algorithm>
-#include <cassert>
+#define CATCH_CONFIG_MAIN  
+#include "catch.hpp"
 
-template<typename T>
-void dump(const T& t){
-  std::cout << "container dump: " << std::endl;
-  for(auto&& u : t){
-	std::cout << u << std::endl;
+#include "../types/preallocVector.hpp"
+#include <vector>
+#include <algorithm>
+
+TEST_CASE("works like vector"){
+
+  benlib::PreallocVector<int,3> pvec;
+  std::vector<int> svec;
+
+  pvec.push_back(1); svec.push_back(1);
+  pvec.push_back(2); svec.push_back(2);
+  pvec.push_back(3); svec.push_back(3);
+  pvec.push_back(4); svec.push_back(4);
+
+  pvec.push_back(20); svec.push_back(20);
+  pvec.push_back(15); svec.push_back(15);
+  pvec.push_back(-20); svec.push_back(-20);
+  pvec.push_back(0); svec.push_back(0);
+  pvec.push_back(13); svec.push_back(13);
+  pvec.emplace_back(5); svec.emplace_back(5);
+  
+  REQUIRE(pvec.size() == svec.size());
+  REQUIRE(std::equal(pvec.begin(), pvec.end(), svec.begin()));
+
+  SECTION("Can be sorted like a std::vector"){
+	std::sort(pvec.begin(), pvec.end());
+	std::sort(svec.begin(), svec.end());
+	REQUIRE(std::equal(pvec.begin(), pvec.end(), svec.begin()));
   }
 }
-
-int main(){
-
-  benlib::PreallocVector<double,3> pvec;
   
-  pvec.push_back(1);
-  pvec.push_back(2);
-  pvec.push_back(3);
-  pvec.push_back(4);
-
-  pvec.push_back(20);  
-  pvec.push_back(15);
-  pvec.push_back(-20);
-  pvec.push_back(0);
-  pvec.push_back(13);
-  pvec.emplace_back(5);
-  
-
-  for(auto d : pvec){
-	std::cout << d << std::endl;
-  }
-  //  const benlib::PreallocVector<double> pvec2;
-  //  auto beg2 = pvec2.begin();
-  std::sort(pvec.begin(), pvec.end());
-  for(auto d : pvec){
-	std::cout << d << std::endl;
-  }
-
-  
+TEST_CASE("assign works properly"){
   //assign tests
-  {
-	std::cout << "assign test 1: " << std:: endl;
+  
+  SECTION("assign from vector"){
 	std::vector<int> sv{0,1,2,3,4,5};
-	
 	benlib::PreallocVector<int> pv;
 	pv.assign(sv.begin(), sv.end());
-	dump(pv);
-	assert(pv.size() == sv.size());
+	REQUIRE(std::equal(pv.begin(), pv.end(), sv.begin()));
   }
 
-  {
-	std::cout << "assign test 2: " << std:: endl;
+  SECTION("assign, overslowing static storage"){
 	std::vector<int> sv{0,1,2,3,4,5};
-	
 	benlib::PreallocVector<int, 3> pv;
 	pv.assign(sv.begin(), sv.end());
-	dump(pv);
-	assert(pv.size() == sv.size());
+	REQUIRE(std::equal(pv.begin(), pv.end(), sv.begin()));
   }
 
-  {
-	std::cout << "assign test 3: " << std:: endl;
+  SECTION("assign overwrites contents"){
 	std::vector<int> sv{0,1,2,3,4,5};
-	
 	benlib::PreallocVector<int, 3> pv;
 	pv.push_back(3);
 	pv.assign(sv.begin(), sv.end());
-	dump(pv);
-	assert(pv.size() == sv.size());
+	REQUIRE(std::equal(pv.begin(), pv.end(), sv.begin()));
   }
 
-  {
-	std::cout << "assign test 4: " << std:: endl;
+  SECTION("assign with value and count works"){
 	benlib::PreallocVector<int, 3> pv;
 	pv.push_back(3);
 	pv.assign(10ul, 4);
-	dump(pv);
-	assert(pv.size() == 10);
+	REQUIRE(pv.size() == 10);
   }
-  {
-	std::cout << "assign test 5: " << std:: endl;
+
+  SECTION("copy constructor"){
 	benlib::PreallocVector<int, 3> pv;
 	pv.assign(10ul, 4);
 	benlib::PreallocVector<int> pv2(pv);
-	dump(pv2);
-	assert(pv.size() == pv2.size());
+	REQUIRE(std::equal(pv.begin(), pv.end(), pv2.begin()));
+  }
+  SECTION("push back changes contents"){
+	std::vector<int> sv{0,1,2,3,4,5};
+	benlib::PreallocVector<int, 3>pv(sv.begin(), sv.end());
+	pv.push_back(3);
+	REQUIRE(sv.size() != pv.size());
   }
 
 

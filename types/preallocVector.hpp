@@ -221,17 +221,15 @@ namespace benlib{
 	//constructors
 	PreallocVector()  //empty vector
 	noexcept(std::is_nothrow_default_constructible<std::vector<T>>::value)
-	  :size_{0},
-	  data_{reinterpret_cast<T*>(buffer_)}
+	  :size_{0}
 	{}
 	  
 	// n default constructed objects
 	explicit PreallocVector(size_t n)
-	  :size_{n},
-	  data_{reinterpret_cast<T*>(buffer_)}
+	  :size_{n}
 	{
 	  for(size_t i = 0; i < n && i < StaticSize; ++i){
-		new (data_ + i) value_type();
+		new (data_() + i) value_type();
 	  }
 	  if(n > StaticSize){
 		extraData_.resize(n - StaticSize);
@@ -240,11 +238,10 @@ namespace benlib{
 	
 	// n not-default constructed objects
 	PreallocVector(size_t n, const value_type& value)
-	  : size_{n},
-	  data_{reinterpret_cast<T*>(buffer_)}
+	  : size_{n}
 	{
 	  for(size_t i = 0; i < n && i < StaticSize; ++i){
-		new (data_ + i) value_type(value);
+		new (data_() + i) value_type(value);
 	  }
 	  if(n > StaticSize){
 		extraData_.assign(n - StaticSize, value);
@@ -254,8 +251,7 @@ namespace benlib{
 	// iterator range
 	template <typename InIt>
 	PreallocVector(InIt first, InIt last)
-	  :size_{0},
-	  data_{reinterpret_cast<T*>(buffer_)}
+	  :size_{0}
 	{
 	  for(auto it = first; it != last; ++it){
 		push_back(*it);
@@ -266,8 +262,7 @@ namespace benlib{
 	//copy
 	template<size_t otherSize>
 	PreallocVector(const PreallocVector<value_type, otherSize>& other)
-	  :size_{0},
-	  data_{reinterpret_cast<T*>(buffer_)}
+	  :size_{0}
 	{
 	  assign(other.begin(), other.end());
 	}
@@ -276,7 +271,7 @@ namespace benlib{
 
 	inline void push_back(const value_type& val){
 	  if(size_ < StaticSize){
-		new (data_ + size_) value_type(val);
+		new (data_() + size_) value_type(val);
 		++size_;
 	  } else {
 		extraData_.push_back(val);
@@ -287,7 +282,7 @@ namespace benlib{
 	inline void pop_back(){
 	  assert(!empty());
 	  if(size_ <= StaticSize){
-		(data_ + size_ -1)->~value_type();
+		(data_() + size_ -1)->~value_type();
 		--size_;
 	  } else {
 		extraData_.pop_back();
@@ -297,7 +292,7 @@ namespace benlib{
 	template<typename ... Args>
 	inline void emplace_back(Args&&... args){
 	  if(size_ < StaticSize){
-		new(data_ + size_) value_type(std::forward<Args>(args)...);
+		new(data_() + size_) value_type(std::forward<Args>(args)...);
 		++size_;
 	  } else {
 		extraData_.emplace_back(std::forward<Args>(args)...);
@@ -347,14 +342,14 @@ namespace benlib{
 
 	inline value_type& operator[](size_t n){
 	  if(n < StaticSize){
-		return data_[n];
+		return data_()[n];
 	  }
 	  return extraData_[n - StaticSize];
 	}
 	
 	inline const value_type& operator[](size_t n) const {
 	  if(n < StaticSize){
-		return data_[n];
+		return data_()[n];
 	  }
 	  return extraData_[n - StaticSize];
 	}
@@ -372,8 +367,8 @@ namespace benlib{
 	inline iterator end(){ return iterator{size_, this};}
 	inline const_iterator end() const { return const_iterator{size_, this};}
 		  
-	inline value_type& front(){return data_[0];}
-	inline const value_type& front() const{return data_[0];}
+	inline value_type& front(){return data_()[0];}
+	inline const value_type& front() const{return data_()[0];}
 	
 	inline value_type& back(){return operator[](size_ - 1);}
 	inline const value_type& back() const {return operator[](size_ - 1);}
@@ -384,7 +379,10 @@ namespace benlib{
   private:
 	size_t size_;
 	char* buffer_[sizeof(T)*StaticSize];
-	T* data_; //always points to buffer
+	//get at that buffer
+	inline T* data_(){return reinterpret_cast<T*>(buffer_);} 
+	inline const T* data_() const{return reinterpret_cast<const T*>(buffer_);} 
+
 	std::vector<T> extraData_;
 
 
