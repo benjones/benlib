@@ -21,6 +21,7 @@ namespace benlib{
 
   public:
 	
+	//todo rename to "Iterator"
 	template<typename VType, typename ContainerType>
 	class PreallocVectorIterator : 
 	  public std::iterator<std::random_access_iterator_tag,
@@ -154,7 +155,7 @@ namespace benlib{
 	  }
 
 	  inline size_t
-	  operator -(PreallocVectorIterator rhs){
+	  operator -(PreallocVectorIterator rhs)const {
 		return index - rhs.index;
 	  }
 
