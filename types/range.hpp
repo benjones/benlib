@@ -1,5 +1,6 @@
 #pragma once
 
+//#include <type_traits>
 
 namespace benlib{
 
@@ -73,7 +74,7 @@ namespace benlib{
 		lhs -= n;
 		return lhs;
 	  }
-	  inline friend size_t
+	  inline friend ptrdiff_t
 	  operator -(Iterator lhs, Iterator rhs) noexcept{
 		return lhs.value - rhs.value;
 	  }
@@ -102,9 +103,7 @@ namespace benlib{
 
 	FastRange(T _begin, T _end) noexcept
 	:begin_{_begin}, end_{_end}
-	{
-	  std::cout << "fast range" << std::endl;
-	}
+	{}
 
 	
 	FastRange(T _end) noexcept
@@ -131,16 +130,32 @@ namespace benlib{
 	  T value;
 	  T step; //you could want an unsigned iterator with a negative step...
 	  bool isEnd;
+
+	  bool comesBefore(const Iterator& other, std::true_type /*T is unsigned */) const{
+		return value < other.value;
+	  }
+	  bool comesBefore(const Iterator& other, std::false_type /*T is signed */) const{
+		return (step < 0) ? (value > other.value) : (value < other.value);
+	  }
+	  
 	  
 	public:
 	  //default constructors/destructors
 	  
 	  friend inline bool operator==(const Iterator& lhs, const Iterator& rhs){
-		return lhs.value == rhs.value;
+		return (lhs.isEnd && rhs.isEnd) ||
+		  lhs.value == rhs.value;
 	  }
+	  //this is tricky because we don't want to overshoot end
+	  // and stl uses != even when it should use < 
 	  friend inline bool operator!=(const Iterator& lhs, const Iterator& rhs){
-		return lhs.value != rhs.value;
+		return (lhs.isEnd && rhs.isEnd) ? false : //ends are ==
+		  (rhs.isEnd ? lhs.comesBefore(rhs, typename std::is_unsigned<T>::type()) : //if one is end
+		   (lhs.isEnd ? rhs.comesBefore(lhs, typename std::is_unsigned<T>::type()) : //true if "in bounds"
+			lhs.value != rhs.value)); //if neither are ends, just do !=
+
 	  }
+	  //these comparisons don't care about whether the iterator is the end or not
 	  friend inline bool operator <(const Iterator& lhs, const Iterator& rhs){
 		assert((lhs.step < 0 && rhs.step < 0) ||
 			   (lhs.step > 0 && rhs.step > 0));
@@ -208,10 +223,10 @@ namespace benlib{
 		return lhs;
 	  }
 
-	  inline size_t 
+	  inline ptrdiff_t 
 	  operator -(const Iterator& rhs) const{
 		assert(rhs.step == step); //distance doesn't make sense otherwise
-		return value - rhs.value;
+		return static_cast<ptrdiff_t>((value - rhs.value)/step);
 	  }
 
 	  const T& operator*() const{
