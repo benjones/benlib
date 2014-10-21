@@ -379,7 +379,7 @@ namespace benlib{
 
   private:
 	size_t size_;
-	char* buffer_[sizeof(T)*StaticSize];
+	char buffer_[sizeof(T)*StaticSize];
 	//get at that buffer
 	inline T* data_(){return reinterpret_cast<T*>(buffer_);} 
 	inline const T* data_() const{return reinterpret_cast<const T*>(buffer_);} 
