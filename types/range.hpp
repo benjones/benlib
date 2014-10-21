@@ -91,8 +91,7 @@ namespace benlib{
 		tmp += n;
 		return *tmp;
 	  }
-	  friend class FastRange;
-	private: 
+	  //no real advantage for making this private...
 	  Iterator(T _value) noexcept
 	  : value{_value}
 	  {}
