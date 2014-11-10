@@ -14,7 +14,7 @@ namespace benlib{
 	public:
 	  friend inline bool operator ==(const Iterator& lhs, const Iterator& rhs){
 		//just check the range iter since the public interface doesn't let other stuff get weird
-		return (lhs.rangeIter != rhs.rangeIter);
+		return (lhs.rangeIter == rhs.rangeIter);
 	  }
 	  friend inline bool operator !=(const Iterator& lhs, const Iterator& rhs){
 		return !(lhs == rhs);
@@ -59,6 +59,37 @@ namespace benlib{
 		return tmp;
 	  }
 	  
+	  //dereference operators
+	  const std::pair<size_t, typename T::reference>&
+	  operator *() const{
+		return std::pair<size_t, typename T::reference>{*rangeIter, *containerIter};
+	  }
+	  //non-const reference to container entry
+	  std::pair<size_t, typename T::reference>
+	  operator *(){
+		return std::pair<size_t, typename T::reference>{*rangeIter, *containerIter};
+	  }
+
+	  //don't include operator ->... not sure what it would look like
+	  
+	  template <typename U = T>
+	  typename std::enable_if<std::is_base_of<std::random_access_iterator_tag,
+											  typename U::iterator::iterator_category>::value,
+							  const std::pair<size_t, typename T::reference> >::type 
+	  operator [](size_t n) const{
+		return std::pair<size_t, typename T::reference>{rangeIter[n], containerIter[n]};
+	  }
+
+	  template <typename U = T>
+	  typename std::enable_if<std::is_base_of<std::random_access_iterator_tag,
+											  typename U::iterator::iterator_category>::value,
+							  std::pair<size_t, typename T::reference> >::type 
+	  operator [](size_t n) {
+		return std::pair<size_t, typename T::reference>{rangeIter[n], containerIter[n]};
+	  }
+					 
+
+
 	  Iterator(benlib::FastRange<size_t>::iterator i1,
 			   typename T::iterator i2)
 		: rangeIter{i1}, containerIter{i2}
@@ -70,12 +101,15 @@ namespace benlib{
 
 	};
 
+	
+
 
 	Enumerate(T& container)
 	  : begin_{benlib::FastRange<size_t>::iterator{0},
 		  std::begin(container)},
-	  end_{benlib::FastRange<size_t>::iterator{std::distance(std::begin(container),
-															 std::end(container))},
+	  end_{benlib::FastRange<size_t>::iterator{container.size()},
+		  //std::distance(std::begin(container), //I assume size is faster than distance?
+		  //			 std::end(container))},
 		  std::end(container)}
 	{}
 	
@@ -84,6 +118,8 @@ namespace benlib{
 	Iterator begin() const {return begin_;}
 	Iterator end() const {return end_;}
 	
+	Iterator begin() { return begin_;}
+	Iterator end() { return end_;}
 
   private:
 	const Iterator begin_, end_;
@@ -94,4 +130,4 @@ namespace benlib{
   template<typename T>
   Enumerate<T> enumerate(T& t){ return Enumerate<T>{t};}
 
-};
+}
