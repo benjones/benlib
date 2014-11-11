@@ -1,3 +1,5 @@
+#pragma once
+
 #include "range.hpp"
 
 
@@ -6,9 +8,18 @@ namespace benlib{
   template<typename T>
   class Enumerate{
   public:
+
+	using containerIteratorType = 
+	  typename std::conditional<std::is_const<T>::value,
+								typename T::const_iterator,
+								typename T::iterator>::type;
+	using containerReferenceType =
+	  typename std::conditional<std::is_const<T>::value,
+								typename T::const_reference,
+								typename T::reference>::type;
 	class Iterator :
 	  public std::iterator<typename T::iterator::iterator_category, 
-						   std::pair<size_t, typename T::value_type> >{
+						   std::pair<size_t, containerReferenceType> >{
 
 	  
 	public:
@@ -60,14 +71,14 @@ namespace benlib{
 	  }
 	  
 	  //dereference operators
-	  const std::pair<size_t, typename T::reference>&
+	  const std::pair<size_t, const containerReferenceType>
 	  operator *() const{
-		return std::pair<size_t, typename T::reference>{*rangeIter, *containerIter};
+		return std::pair<size_t, const containerReferenceType>{*rangeIter, *containerIter};
 	  }
 	  //non-const reference to container entry
-	  std::pair<size_t, typename T::reference>
+	  std::pair<size_t, containerReferenceType>
 	  operator *(){
-		return std::pair<size_t, typename T::reference>{*rangeIter, *containerIter};
+		return std::pair<size_t, containerReferenceType>{*rangeIter, *containerIter};
 	  }
 
 	  //don't include operator ->... not sure what it would look like
@@ -75,7 +86,7 @@ namespace benlib{
 	  template <typename U = T>
 	  typename std::enable_if<std::is_base_of<std::random_access_iterator_tag,
 											  typename U::iterator::iterator_category>::value,
-							  const std::pair<size_t, typename T::reference> >::type 
+							  const std::pair<size_t, const containerReferenceType> >::type 
 	  operator [](size_t n) const{
 		return std::pair<size_t, typename T::reference>{rangeIter[n], containerIter[n]};
 	  }
@@ -83,21 +94,21 @@ namespace benlib{
 	  template <typename U = T>
 	  typename std::enable_if<std::is_base_of<std::random_access_iterator_tag,
 											  typename U::iterator::iterator_category>::value,
-							  std::pair<size_t, typename T::reference> >::type 
+							  std::pair<size_t, containerReferenceType> >::type 
 	  operator [](size_t n) {
-		return std::pair<size_t, typename T::reference>{rangeIter[n], containerIter[n]};
+		return std::pair<size_t, containerReferenceType>{rangeIter[n], containerIter[n]};
 	  }
 					 
 
 
 	  Iterator(benlib::FastRange<size_t>::iterator i1,
-			   typename T::iterator i2)
+			   containerIteratorType i2)
 		: rangeIter{i1}, containerIter{i2}
 	  {}
 
 	private:
 	  benlib::FastRange<size_t>::iterator rangeIter;
-	  typename T::iterator containerIter;
+	  containerIteratorType containerIter;
 
 	};
 
