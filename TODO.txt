@@ -1,0 +1,5 @@
+
+SDL wrapper stuff
+
+OpenGL immediate mode emulation
+(add vertices, lines triangles and create buffers, arrays, etc and setup shaders)
