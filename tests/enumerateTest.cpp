@@ -8,7 +8,7 @@
 
 using benlib::enumerate;
 
-TEST_CASE("tests"){
+TEST_CASE("vectors"){
   std::vector<size_t> v{0,1,2,3};
 
   for(auto&& pr : enumerate(v)){
@@ -26,6 +26,8 @@ TEST_CASE("tests"){
 	REQUIRE(pr.first == pr.second);
   }
   
+  
+
   /*
   int a = 3, b = 5;
   std::pair<int&, int&> pr{a, b};
@@ -42,4 +44,17 @@ TEST_CASE("tests"){
   REQUIRE(c == 4);
   REQUIRE(d == 5);
   */
+}
+
+TEST_CASE("sets"){
+  
+  std::set<int> ints;
+  ints.insert(0);
+  ints.insert(1);
+  ints.insert(2);
+  ints.insert(3);
+
+  for(auto&& pr : enumerate(ints)){
+	REQUIRE(pr.first == pr.second);
+  }
 }

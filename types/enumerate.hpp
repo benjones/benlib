@@ -7,14 +7,26 @@ namespace benlib{
 
   template<typename T>
   class Enumerate{
+	
+  private: 
+	template<typename Iterator>
+	struct is_const_iterator //helper for detecting constness
+	{
+	  typedef typename std::iterator_traits<Iterator>::pointer pointer; 
+	  static const bool value = 
+		std::is_const<typename std::remove_pointer<pointer>::type>::value;
+	};
+
   public:
 
 	using containerIteratorType = 
-	  typename std::conditional<std::is_const<T>::value,
+	  typename std::conditional<is_const_iterator<typename T::iterator>::value ||
+								std::is_const<T>::value,
 								typename T::const_iterator,
 								typename T::iterator>::type;
 	using containerReferenceType =
-	  typename std::conditional<std::is_const<T>::value,
+	  typename std::conditional<is_const_iterator<typename T::iterator>::value ||
+								std::is_const<T>::value,
 								typename T::const_reference,
 								typename T::reference>::type;
 	class Iterator :
