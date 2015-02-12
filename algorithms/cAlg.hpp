@@ -31,7 +31,7 @@ namespace benlib{
 
 	template<typename Cont, typename OutputIt, typename Pred>
 	OutputIt copy_if(Cont&& cont, OutputIt out, Pred&& pred){
-	  return std::copy_if(std::begin(cont), std::end(cont), out, pred);
+	  return std::copy_if(std::begin(cont), std::end(cont), out, std::forward<Pred>(pred));
 	}
 
   }
