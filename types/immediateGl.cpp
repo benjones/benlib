@@ -80,6 +80,15 @@ namespace benlib{
 
   }
 
+  void ImmediateGl::clear(){
+	dirty = true;
+	vertexData.clear();
+	points.clear();
+	lines.clear();
+	triangles.clear();
+  }
+
+
   void ImmediateGl::setupBuffers(){
 	
 	combinedIndices.resize(triangles.size() + lines.size() + points.size());
@@ -173,5 +182,66 @@ namespace benlib{
 	//shaders auto deleted.  Thanks RAII
 	
   }
+
+  void ImmediateGl::cameraSetIdentity(){
+	cameraMatrix.fill(0.0f);
+	cameraMatrix[0] = 1.0f;
+	cameraMatrix[5] = 1.0f;
+	cameraMatrix[10] = 1.0f;
+	cameraMatrix[15] = 1.0f;
+  }
+  void ImmediateGl::projectionSetIdentity(){
+	projectionMatrix.fill(0.0f);
+	projectionMatrix[0] = 1.0f;
+	projectionMatrix[5] = 1.0f;
+	projectionMatrix[10] = 1.0f;
+	projectionMatrix[15] = 1.0f;
+  }
+
+  //projection, like GLUOrtho2D
+  void ImmediateGl::orthoProjection2D(float left, float right, float bottom, float top){
+	projectionMatrix.fill(0.0f);
+	
+	projectionMatrix[0] = 2/(right - left);  //0,0
+	projectionMatrix[12] = (right + left)/(left - right); //0, 3
+	
+	projectionMatrix[5] = 2/(top - bottom); //1,1	
+	projectionMatrix[13] = (top + bottom)/(bottom - top);	//1,3
+	
+	projectionMatrix[10] = 1.f;
+	projectionMatrix[15] = 1.f;
+	
+  }
+
+
+  void ImmediateGl::perspectiveProjection(float fovy, float aspect, float zNear, float zFar){
+	
+	float f = std::tan(M_PI_2*(1 - fovy/180.f));
+	float diff = zNear - zFar;
+	
+	projectionMatrix[0] = f/aspect;
+	projectionMatrix[1] = 0.f;
+	projectionMatrix[2] = 0.f;
+	projectionMatrix[3] = 0.f;
+  
+	projectionMatrix[4] = 0.f;
+	projectionMatrix[5] = f  ;
+	projectionMatrix[6] = 0.f;
+	projectionMatrix[7] = 0.f;
+
+	projectionMatrix[8] = 0.f;
+	projectionMatrix[9] = 0.f;
+	projectionMatrix[10] = (zNear + zFar)/diff;
+	projectionMatrix[11] = -1.f;
+
+	projectionMatrix[12] = 0.f;
+	projectionMatrix[13] = 0.f;
+	projectionMatrix[14] = 2*zNear*zFar/diff;
+	projectionMatrix[15] = 0.f;
+  
+
+  }
+
+
 
 }

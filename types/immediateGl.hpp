@@ -35,6 +35,7 @@ namespace benlib{
 	using VertexData = std::array<float, 8>; //x,y,z,w,r,g,b,a
 
 	void render();  //draw this stuff to the current opengl buffer
+	void clear(); //remove vertices/primitives
 
 
 	//Add Vertex operations
@@ -42,11 +43,17 @@ namespace benlib{
 	//T should have operator [] and at least 3 elements
 	//returns the index of the new vertex
 	template<typename T>
+	unsigned int addVertex2D(const T& vertex);
+
+	template<typename T>
 	unsigned int addVertex3D(const T& vertex);
 
 	template<typename T>
 	unsigned int addVertex4D(const T& vertex);
-  
+	
+	template<typename T>
+	unsigned int addVertex2D(T x, T y);
+
 	template<typename T>
 	unsigned int addVertex3D(T x, T y, T z);
   
@@ -62,15 +69,21 @@ namespace benlib{
 	//pass in the geometry, not indices
 	// T must have operator [] of appropriate size
 	template <typename T>
+	void addPoint2D(const T& vertex);
+	template <typename T>
 	void addPoint3D(const T& vertex);
 	template <typename T>
 	void addPoint4D(const T& vertex);
   
 	template<typename T, typename U>
+	void addLine2D(const T& v1, const U& v2);
+	template<typename T, typename U>
 	void addLine3D(const T& v1, const U& v2);
 	template<typename T, typename U>
 	void addLine4D(const T& v1, const U& v2);
 
+	template<typename T, typename U, typename W>
+	void addTriangle2D(const T& v1, const U& v2, const W& v3);
 	template<typename T, typename U, typename W>
 	void addTriangle3D(const T& v1, const U& v2, const W& v3);
 	template<typename T, typename U, typename W>
@@ -102,10 +115,14 @@ namespace benlib{
 
 	//projection matrix
 	//just like GluPerspective
-	template <typename T>
-	void perspectiveProjection(T fovy, T aspect, T zNear, T zFar);
-  
-  
+	void perspectiveProjection(float fovy, float aspect, float zNear, float zFar);
+
+	//projection, like GLUOrtho2D
+	void orthoProjection2D(float left, float right, float bottom, float top);
+	
+	void cameraSetIdentity();
+	void projectionSetIdentity();
+
 
   private:
 
@@ -137,15 +154,24 @@ namespace benlib{
   //template/inline function defs
 
   //add vertices
+  template <typename T>
+  unsigned int ImmediateGl::addVertex2D(const T& vertex){
+	return addVertex4D<float>(vertex[0], vertex[1], 0.f, 1.f);
+  }
 
   template <typename T>
   unsigned int ImmediateGl::addVertex3D(const T& vertex){
-	return addVertex3D<float>(vertex[0], vertex[1], vertex[2]);
+	return addVertex4D<float>(vertex[0], vertex[1], vertex[2], 1.f);
   }
 
   template <typename T>
   unsigned int ImmediateGl::addVertex4D(const T& vertex){
 	return addVertex4D<float>(vertex[0], vertex[1], vertex[2], vertex[3]);
+  }
+
+  template <typename T>
+  unsigned int ImmediateGl::addVertex2D(T x, T y){
+	return addVertex4D<float>(x, y, 0.f, 1.f);
   }
 
   template <typename T>
@@ -167,6 +193,11 @@ namespace benlib{
 
   //points (add vertex AND primitives)
   template <typename T>
+  void ImmediateGl::addPoint2D(const T& vertex){
+	points.push_back(addVertex2D(vertex));
+  }
+
+  template <typename T>
   void ImmediateGl::addPoint3D(const T& vertex){
 	points.push_back(addVertex3D(vertex));
   }
@@ -177,6 +208,14 @@ namespace benlib{
   }
 
   //line
+  template <typename T, typename U>
+  void ImmediateGl::addLine2D(
+	  const T& v1, 
+	  const U& v2){
+	lines.push_back(addVertex2D(v1));
+	lines.push_back(addVertex2D(v2));
+  }
+
   template <typename T, typename U>
   void ImmediateGl::addLine3D(
 	  const T& v1, 
@@ -194,6 +233,15 @@ namespace benlib{
   }
 
   //triangle
+  template <typename T, typename U, typename W>
+  void ImmediateGl::addTriangle2D(
+	  const T& v1, 
+	  const U& v2,
+	  const W& v3){
+	triangles.push_back(addVertex2D(v1));
+	triangles.push_back(addVertex2D(v2));
+	triangles.push_back(addVertex2D(v3));
+  }
   template <typename T, typename U, typename W>
   void ImmediateGl::addTriangle3D(
 	  const T& v1, 
@@ -276,22 +324,6 @@ namespace benlib{
 	s[1] /= sNorm;
 	s[2] /= sNorm;
 
-	/*//col 1 = s
-	cameraMatrix[0] = s[0] ;
-	cameraMatrix[1] = s[1] ;
-	cameraMatrix[2] = s[2] ;
-	cameraMatrix[3] = 0.f ;
-	//col 2 = s cross f
-	cameraMatrix[4] = s[1]*f[2] - s[2]*f[1];
-	cameraMatrix[5] = s[2]*f[0] - s[0]*f[2];
-	cameraMatrix[6] = s[0]*f[1] - s[1]*f[0];
-	cameraMatrix[7] = 0.f;
-	//col 3 = -f
-	cameraMatrix[8] = -f[0];
-	cameraMatrix[9] = -f[1];
-	cameraMatrix[10] = -f[2];
-	cameraMatrix[11] = 0;
-	*/
 	//row 1 = s
 	cameraMatrix[0] = s[0] ;
 	cameraMatrix[4] = s[1] ;
@@ -317,33 +349,6 @@ namespace benlib{
   }
 
 
-
-  template <typename T>
-  void ImmediateGl::perspectiveProjection(T fovy, T aspect, T zNear, T zFar){
-  
-	float f = std::tan(M_PI_2*(1 - fovy/180.f));
-	float diff = zNear - zFar;
-
-	projectionMatrix[0] = f/aspect;
-	projectionMatrix[1] = 0.f;
-	projectionMatrix[2] = 0.f;
-	projectionMatrix[3] = 0.f;
-  
-	projectionMatrix[4] = 0.f;
-	projectionMatrix[5] = f  ;
-	projectionMatrix[6] = 0.f;
-	projectionMatrix[7] = 0.f;
-
-	projectionMatrix[8] = 0.f;
-	projectionMatrix[9] = 0.f;
-	projectionMatrix[10] = (zNear + zFar)/diff;
-	projectionMatrix[11] = -1.f;
-
-	projectionMatrix[12] = 0.f;
-	projectionMatrix[13] = 0.f;
-	projectionMatrix[14] = 2*zNear*zFar/diff;
-	projectionMatrix[15] = 0.f;
-  
-
-  }
 }
+
+
