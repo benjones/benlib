@@ -165,12 +165,12 @@ namespace benlib{
 			   (lhs.step > 0 && rhs.step > 0));
 		return lhs.step > 0 ? (lhs.value <= rhs.value) : (lhs.value >= rhs.value);
 	  }
-	  friend inline bool operator <(const Iterator& lhs, const Iterator& rhs){
+	  friend inline bool operator >(const Iterator& lhs, const Iterator& rhs){
 		assert((lhs.step < 0 && rhs.step < 0) ||
 			   (lhs.step > 0 && rhs.step > 0));
 		return lhs.step > 0 ? (lhs.value > rhs.value) : (lhs.value < rhs.value);
 	  }
-	  friend inline bool operator <(const Iterator& lhs, const Iterator& rhs){
+	  friend inline bool operator >=(const Iterator& lhs, const Iterator& rhs){
 		assert((lhs.step < 0 && rhs.step < 0) ||
 			   (lhs.step > 0 && rhs.step > 0));
 		return lhs.step > 0 ? (lhs.value >= rhs.value) : (lhs.value <= rhs.value);

@@ -1,6 +1,6 @@
 
 CC=clang++
-FLAGS=-Wall -Wextra -Wno-c++11-extensions -Wno-c++98-compat -std=c++1y -stdlib=libc++ -O3 
+FLAGS=-Wall -Wextra -Wno-c++11-extensions -Wno-c++98-compat -std=c++14 -O3 
 
 TEST_INPUTS = $(wildcard *Test.cpp)
 TESTS=$(TEST_INPUTS:.cpp=.run)

@@ -26,7 +26,18 @@ TEST_CASE("copy_if"){
 	  [](int a){return a %2 == 0;});
   auto expectedOutput = {0,2,4};
   REQUIRE(benlib::cAlg::equal(output, expectedOutput));
-  
-
 }
 
+TEST_CASE("sum_feature"){
+  struct A{ int val;};
+  std::vector<A> as{ {1}, {2}, {3}, {4}, {5}};
+  REQUIRE(benlib::cAlg::sum_feature(as, 
+		  [](const A& a){ return a.val;},
+		  10) == 25);
+
+  REQUIRE(benlib::cAlg::sum_feature(as, 
+		  [](const A& a){ return a.val*a.val;},
+		  10) == 65);
+
+
+}

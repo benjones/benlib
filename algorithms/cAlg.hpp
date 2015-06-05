@@ -34,5 +34,26 @@ namespace benlib{
 	  return std::copy_if(std::begin(cont), std::end(cont), out, std::forward<Pred>(pred));
 	}
 
+
+	//essentially a specialized accumulate
+	template<typename Cont, typename Extractor, 
+			 typename Res = typename std::result_of<
+			   Extractor(typename Cont::value_type)>::type
+			 >
+	Res sum_feature(Cont&& cont, Extractor&& ex, Res init){
+	  using std::begin;
+	  using std::end;
+	  auto start = begin(cont);
+	  auto stop = end(cont);
+
+	  for(; start != stop; ++start){
+		init += ex(*start);
+	  }
+	  return init;
+	}
+
+	
+
   }
+
 }
